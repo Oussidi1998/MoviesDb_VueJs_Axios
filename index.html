@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>VueTuto</title>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+	<script src="js/vue.js"></script>
+	<script type="text/javascript" src="js/axios.min.js"></script>
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/popper.min.js"></script>
+	<script type="text/javascript" src="js/bootstrap4.min.js"></script>
+</head>
+<body>
+
+	<div id="app">
+		<div class="container">
+			<h2 class="text-center mt-5">Movie database</h2>
+
+			<div class="row" v-cloak v-if="tab_movies.length>0">
+				<div v-for="(movie,index) in tab_movies" class="col-md-4 col-xl-3 col-sm-6 col-xs-12 mt-5">
+					<div class="card" >
+					  <img class="card-img-top" :src="imagePath+movie.poster_path" :alt="movie.title" :title="movie.title">
+					  <div class="card-body">
+					    <h5 class="card-title">{{movie.title}}</h5>
+					    <p class="card-text">{{movie.overview.slice(0,120)}}...</p>
+					   <button type="button" class="btn btn-primary" @click="read_more(index)">read more</button>
+					  </div>
+					</div>
+				</div>
+			</div>
+
+			<button v-cloak  v-if="!loading" style="cursor: pointer"  class="mt-5 form-control mb-5 btn btn-info"  @click.prevent="load_more">Load more</button>
+			<div v-if="loading" v-cloak class="text-center mt-3 mb-5">
+				<img src="image/loader.gif">
+			</div>
+
+		</div>
+
+		<div class="modal" id="ShowInfo" tabindex="-1" role="dialog">
+		  <div class="modal-dialog  modal-lg" role="document">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <h5 class="modal-title">{{title}}</h5>
+		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		          <span aria-hidden="true">&times;</span>
+		        </button>
+		      </div>
+		      <div class="modal-body">
+		      	<div class="text-center">
+		      		<img class="img-thumbnail" :src="poster" width="30%">
+		      	</div><br>
+		        <p><b>Movie Title : </b>{{title}}</p>
+		        <p><b>Release Date  : </b>{{release_date}}</p>
+		        <p><b>Vote Average : </b>{{vote_avg}}</p>
+		        <p><b>Vote Count : </b>{{vote_count}}</p>
+		        <p><b>Language : </b>{{lang}}</p>
+		        <p><b>Overview : </b><br>{{overview}}</p>
+		      </div>
+		      <div class="modal-footer">
+		        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+		      </div>
+		    </div>
+		  </div>
+		</div>
+
+	</div>
+
+
+
+	<script type="text/javascript">
+		var app = new Vue({
+		  el: '#app',
+		  data: {
+		    tab_movies:[],
+		    imagePath:"http://image.tmdb.org/t/p/w500/",
+		    page:1,
+		    title:'',
+		    poster:'',
+		    overview:'',
+		    release_date:'',
+		    vote_avg:'',
+		    vote_count:'',
+		    lang:'',
+		    loading:false
+
+		  },
+		  created:function(){
+		  	this.showData();
+		  },
+		  methods:{
+		  	read_more: function(index){
+		  		this.title = this.tab_movies[index].title;
+		  		this.overview = this.tab_movies[index].overview;
+		  		this.poster = this.imagePath+this.tab_movies[index].poster_path;
+		  		this.release_date = this.tab_movies[index].release_date;
+		  		this.vote_avg = this.tab_movies[index].vote_average;
+		  		this.vote_count = this.tab_movies[index].vote_count;
+		  		this.lang = this.tab_movies[index].original_language;
+		  		$('#ShowInfo').modal('show')
+		  	},
+		  	load_more:function(){
+		  		this.loading=true;
+		  		this.page = this.page+1;
+		  		const API_KEY = '2d8357ec8381c96d3875eb8b8c718fe8';
+		  		const API_URL = "https://api.themoviedb.org/3/movie/popular?api_key="+API_KEY+"&language=en-US&page="+this.page;
+
+		  		axios.get(API_URL)
+		  		  .then(function (response) {
+
+		  		   	for(i=0;i<response.data.results.length;i++)
+		  		    	app.tab_movies.push(response.data.results[i]);
+
+		  		   	app.loading=false;
+
+		  		  })
+		  	},
+		  	showData:function(){
+		  		const API_KEY = '2d8357ec8381c96d3875eb8b8c718fe8';
+		  		const API_URL = "https://api.themoviedb.org/3/movie/popular?api_key="+API_KEY+"&language=en-US&page="+this.page;
+
+		  		axios.get(API_URL)
+		  		  .then(function (response) {
+		  		    app.tab_movies = response.data.results;
+		  		  });
+		  	}
+		  }
+
+		})
+
+
+
+
+	</script>
+</body>
+</html>
